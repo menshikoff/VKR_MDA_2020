@@ -1,13 +1,19 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium import webdriver
 from time import sleep
 import random
 
 def extr_element_text(elem, browser):
+    """Возвращает текст, содержащийся в искомом элементе
     
+    :param elem:    WebElement
+    :param browser: WebDriver
+    :return: строку
+    """
+
     try:
         output = browser.find_element_by_xpath(elem).text
     except:
@@ -17,35 +23,37 @@ def extr_element_text(elem, browser):
 
 
 def extract_car_data(browser, grid):
+    """Возвращает словарь с данными об автомобиле
+    
+    :param browser: WebDriver
+    :param grid:    экземпляр класса 'coordinate_grid'
+    :return: словарь с данными ободном автомобиле
+    """
 
     sleep(2)
  
-    #Основные данные на странице находится в блоке '//ul[@class="CardInfo"]'. Находим данный блок и проходимся по всем элементам 'span'
-    
-    #Словарь с параметрами автомобиля
+    # Основные данные на странице находится в блоке '//ul[@class="CardInfo"]'. Находим данный блок и проходимся по всем элементам 'span'
+    # Словарь с параметрами автомобиля
     car_data = {}
 
-    #Проходим по содержимому блоку и формируем список, где каждый 1-й элемент название параметра, а каждый 2-й элемент значение данного параметра 
-
+    # Проходим по содержимому блоку и формируем список, где каждый 1-й элемент название параметра, а каждый 2-й элемент значение данного параметра 
     car_table_data = list(map(lambda x: x.text, browser.find_element_by_xpath('//ul[@class="CardInfo"]').find_elements_by_xpath(
         '//span[@class="CardInfo__cell"]')))
 
-
-    #Добавляем в словать параметры автомобиля
+    # Добавляем в словать параметры автомобиля
     x = 0
     while x < len(car_table_data):
         car_data.update({car_table_data[x]: car_table_data[x+1]})
         x = x + 2
 
-    #Информация о двигателе представлена одной строкой. Создаем список характеристик двигателя
+    # Информация о двигателе представлена одной строкой. Создаем список характеристик двигателя
     car_engine_data = map(lambda i: i.strip(), car_table_data[9].split('/'))
     
-    #Дополняем словарь с данными автомобяли отдельными характеристиками двигателя
+    # Дополняем словарь с данными автомобяли отдельными характеристиками двигателя
     for i in ['Объем двигателя', 'Мощность двигателя', 'Тип топлива']:
         car_data.update({i: next(car_engine_data)})
 
-    #Блок действий пользователя
-
+    # Блок действий пользователя
     thumbnails = browser.find_elements_by_xpath('//div[@class="image-gallery-thumbnail-container"]')
     
     for i in range(random.randrange(2, 6, 1)):
@@ -56,7 +64,7 @@ def extract_car_data(browser, grid):
         except:
             pass
     
-    #Get the phone number
+    # Get the phone number
     try:
         button = browser.find_element_by_xpath('//div[@class="CardPhone-module__phone CardPhone-module__preview"]')
 
@@ -64,7 +72,7 @@ def extract_car_data(browser, grid):
         grid.mouse_move_to(button)
         grid.mouse_click_left()
    
-    #Ожидание появления элемента с номером телефона
+    # Ожидание появления элемента с номером телефона
         try:
             element = WebDriverWait(browser, 20).until(
                 EC.presence_of_element_located((By.XPATH, '//div[@class="CardPhone-module__phone-title"]'))

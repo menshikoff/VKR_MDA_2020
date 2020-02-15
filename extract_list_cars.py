@@ -1,28 +1,30 @@
-from selenium import webdriver 
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.select import Select
-from time import sleep
+from selenium.webdriver.common.by import By
 from pynput.keyboard import Key, Controller
+from selenium import webdriver 
+from time import sleep
 import pyautogui
 import time
 import re
-
-
-import my_tools
 import par_sing_page
+import my_tools
 import regrid
 
 def list_page_navi(browser, grid):
-    #The idea is to open links by pointing mouse and clicking.
+    """Возвращает словарь с данными об искомых автомобилях
+    
+    :param browser: WebDriver
+    :param grid:    экземпляр класса 'coordinate_grid'
+    :return: словарь с информацией о просмотенных автомобидлях
+    """
 
-    start_time = time.time()
-  
+    start_time = time.time()  
     car_list_data = {}
 
-    #Определяем количество страниц с данными авто по запросу
+    # Определяем количество страниц с данными авто по запросу
     pages_numbers = browser.find_elements_by_xpath(
         '//a[@class="Button Button_color_whiteHoverBlue Button_size_s Button_type_link Button_width_default ListingPagination-module__page"]')
     
@@ -31,15 +33,14 @@ def list_page_navi(browser, grid):
     except:
         last_page = 1
 
-    #Запускаем цикл для обхода страниц поиска
-
+    # Запускаем цикл для обхода страниц поиска
     for i in range(last_page):
         
         count_items = lambda x,y: x.find_elements_by_xpath(y)
         car_list = count_items(browser, '//div[@class="ListingItem-module__container ListingCars-module__listingItem"]') #Get the list of car_brief on the current page
         sleep(1)
         
-    #Запускаем цикл для обхода объявлений на странице
+    # Запускаем цикл для обхода объявлений на странице
         for car in car_list:
             try:
                 grid.in_focus(car)
@@ -48,11 +49,9 @@ def list_page_navi(browser, grid):
 
             try:
                 link_to_car = car.find_element_by_tag_name('h3').find_element_by_tag_name('a')
-                # link_to_car = car.find_element(By.XPATH, '//div[@class="ListingItem-module__thumb"]')
-                print(link_to_car)
             except:
                 continue
-test_search_Wed Feb  5 23:42:22 2020.jsn
+
             grid.mouse_move_to(link_to_car)
             time.sleep(1)
             
@@ -78,7 +77,7 @@ test_search_Wed Feb  5 23:42:22 2020.jsn
 
             window_grid = regrid.coordinate_grid(browser)
          
-            #Блок трай нужен, чтобы закрыть неправильную страницу если случайно перешли на нее
+            # Блок трай нужен, чтобы закрыть неправильную страницу если случайно перешли на нее
             try:
                 car_list_data.get(car_id).update(par_sing_page.extract_car_data(browser, window_grid))
             except:
@@ -96,10 +95,10 @@ test_search_Wed Feb  5 23:42:22 2020.jsn
 
         car_list_data.update({'Техническая информация': {'Время поиска в секундах': finish_time - start_time, 'Кол-во объявлений': len(car_list_data.keys()), 'Время поиска одного объявления': (finish_time - start_time) / len(car_list_data.keys())}})
 
-        #Сохраняем в файл данные по авто. (Временное решение, т.к. логично будет если сохранение будет прозводиться сразу в базу данных после получения информации о каждом авто)
+        # Сохраняем в файл данные по авто. (Временное решение, т.к. логично будет если сохранение будет прозводиться сразу в базу данных после получения информации о каждом авто)
         my_tools.json_s('test_search_'+ time.ctime(time.time())+'.jsn', car_list_data)
         
-        #Переходим на следующую страницу
+        # Переходим на следующую страницу
         try:
             content_panel = browser.find_element_by_xpath('//div[@class="ListingPagination-module__container"]')
             next_button = content_panel.find_element_by_xpath(
@@ -123,7 +122,6 @@ test_search_Wed Feb  5 23:42:22 2020.jsn
             pass
         
         # Обновляем информацию в переменных сетки координат
-        
         for i in range(20):
             grid.mouse_scroll(1)
         
@@ -133,6 +131,11 @@ test_search_Wed Feb  5 23:42:22 2020.jsn
     return car_list_data
 
 def main(url):
+    """Запускает работу самого парсера. Самостоятельно ничего не возвращает
+    
+    :param url: адресная строка auto.ru с параметрами поиска автомобилей
+    :return: None
+    """
 
     option = webdriver.ChromeOptions()
 
@@ -160,14 +163,6 @@ def main(url):
     grid_one = regrid.coordinate_grid(browser)
 
     sleep(2)
-
-    print(list_page_navi(browser, grid_one))
-
-    # list_page_navi(browser)
-
-    # set_the_region(browser, ['Санкт-Петербург', 'Москва'])
-    # filter_mark(browser, 'Audi')
-    sleep(1)
 
 
 if __name__ == "__main__":

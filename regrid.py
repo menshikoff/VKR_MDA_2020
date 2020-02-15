@@ -6,6 +6,7 @@ import math
 import numpy as np
 import bezier
 
+
 class coordinate_grid:
 
     monitor_height = screeninfo.get_monitors()[0].height
@@ -16,34 +17,36 @@ class coordinate_grid:
 
     def __init__(self, browser):
         
-            #Координата по оси OY верхней видимой части сайта в системе координат монитора:
+        # Координата по оси OY верхней видимой части сайта в системе координат монитора:
         self.y_screen_top = browser.get_window_rect()['y'] + self.browser_tools_panel
         
-            #Координата по оси OY нижней видимой части сайта в системе координат монитора:
+        # Координата по оси OY нижней видимой части сайта в системе координат монитора:
         self.y_screen_bottom = browser.get_window_rect()['y'] + browser.get_window_rect()['height'] - self.browser_bottom_panel
         
-            #Координата по оси OY верхней видимой части сайта в системе координат сайта:
+        # Координата по оси OY верхней видимой части сайта в системе координат сайта:
         self.y_website_top = 0
         
-            #Координата по оси OY нижней видимой части сайта в системе координат сайта:
+        # Координата по оси OY нижней видимой части сайта в системе координат сайта:
         self.y_website_bottom = browser.get_window_rect()['height'] - self.browser_tools_panel - self.browser_bottom_panel
         self.y_website_bottom_lim = self.y_website_bottom
 
-            #Координата по оси OX левой видимой части сайта в системе координат монитора:
+        # Координата по оси OX левой видимой части сайта в системе координат монитора:
         self.x_screen_left = browser.get_window_rect()['x']
 
-            #Координата по оси OX правой видимой части сайта в системе координат монитора:
+        # Координата по оси OX правой видимой части сайта в системе координат монитора:
         self.x_screen_left = browser.get_window_rect()['x'] + browser.get_window_rect()['width'] - self.browser_bottom_panel
 
 
     def in_focus(self, element):
-    
-    #Функция проверяет находится ли элемент, на который необходимо переместить указатель мыши на экране, 
-    #прокручивает экран до элемента, случайным образом опредляет целевую точку на элементе
-    #и возвращает координаты экрана элемента.
+        """Функция проверяет находится ли элемент, на который необходимо переместить 
+        указатель мыши на экране, прокручивает экран до элемента, случайным образом
+        опредляет целевую точку на элементе и возвращает координаты экрана определенной точки.
 
-    #В качестве параметра element передается результат работы метода "find_element_by_xpath"
+        :param element: WebElement
+        :return: возвращает координаты целевой точки
+        """
 
+        # В качестве параметра element передается результат работы метода "find_element_by_xpath"
         element_x = element.rect['x']
         element_y = element.rect['y']
         element_height = element.rect['height']
@@ -71,7 +74,16 @@ class coordinate_grid:
     
 
     def bezier_path(self, x1, y1, x2, y2):
+        """Функция возвращает список координат точек для построения пути указателя мыши
+        до целеовой координаты на экране
 
+        :param x1:  координата по оси ОХ текущей позиции указателя мыши
+        :param y1:  координата по оси ОY текущей позиции указателя мыши
+        :param x2:  координата по оси ОХ целевой точки для указателя мыши
+        :param y2:  координата по оси ОY целевой точки для указателя мыши
+        :return: список координат точек
+        """
+        
         k = (y1 - y2) / (x1 - x2)
         b = y2 - k * x2
 
@@ -102,16 +114,21 @@ class coordinate_grid:
         return points
 
     def mouse_click_left(self):
+        """Функция иммитирует нажатие левой кнопки мыши и ничего не возвращает
+        """
 
         self.mouse_.press(Button.left)
-        time.sleep(random.uniform(0.0578, 0.1129)) # Значения установлены на основани статистической информации о скорости клика пользователя
+        time.sleep(random.uniform(0.0578, 0.1129))  #Значения установлены на основани статистической информации о скорости клика пользователя
         self.mouse_.release(Button.left)
 
     def mouse_move_to(self, element):
-
+        """ Функция перемещает курсор мыши от текущей позиции нв экране до целевого элемента на сранице
+        :param element: WebElement а который необходимо навести указатель мыши
+        :return: None
+        """
         element_destination = self.in_focus(element)
 
-#Строим путь до элемента из точек:
+        # Строим путь до элемента из точек:
         track_to_element = self.bezier_path(self.mouse_.position[0], 
                             self.mouse_.position[1], 
                             element_destination[0], 
@@ -146,6 +163,10 @@ class coordinate_grid:
         time.sleep(0.4)
 
     def mouse_scroll(self, direction):
+        """Функция осуществляет одно прокручивание колеса мыши по заданному направлению вверз/вниз
 
+        :param direction: для вижения вниз задаем -1 / для движения вверх задаем "1"        
+        :return: None
+        """
         self.mouse_.scroll(0, direction)
         time.sleep(random.uniform(0.0077, 0.1385))

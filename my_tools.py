@@ -91,14 +91,3 @@ if __name__ == "__main__":
     dict_ = json_l('test_search_Thu Feb  6 03:44:52 2020.jsn')
 
     print(dict_['Техническая информация'])
-
-    # car = (i for i in dict_)
-
-    # for i in range(10):
-    #     print(dict_[next(car)])
-
-
-
-    # data_dict = mouse_moves_calcs(l_pickle('mouse_track_Sun Dec 29 21:09:53 2019'))
-    # data = (data_dict.get(item) for item in data_dict)
-    # csv_writer(data, 'test_csv.csv')
